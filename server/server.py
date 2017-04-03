@@ -47,7 +47,7 @@ class JudgeServer(object):
         return data
 
     def judge(self, language_config, src, max_cpu_time, max_memory, test_case_id,
-              spj_version=None, spj_config=None, spj_compile_config=None, spj_src=None, output=False, submission_id=None):
+              spj_version=None, spj_config=None, spj_compile_config=None, spj_src=None, output=False):
         # init
         compile_config = language_config.get("compile")
         run_config = language_config["run"]
@@ -85,7 +85,6 @@ class JudgeServer(object):
                                        spj_config=spj_config,
                                        output=output)
             run_result = judge_client.run()
-            run_result["submission_id"] = submission_id or submission_uuid
             return run_result
 
     def compile_spj(self, spj_version, src, spj_compile_config, test_case_id):
@@ -129,7 +128,7 @@ class JudgeServer(object):
                 callback = self.compile_spj
             else:
                 return json.dumps({"err": "InvalidMethod", "data": None})
-            return json.dumps({"err": None, "data": callback(**data)})
+            return json.dumps({"err": None, "submission_id": data["submission_id"], "data": callback(**data)})
         except (CompileError, TokenVerificationFailed, SPJCompileError, JudgeClientError) as e:
             logger.exception(e)
             ret = dict()
