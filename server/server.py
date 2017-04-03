@@ -47,18 +47,18 @@ class JudgeServer(object):
         return data
 
     def judge(self, language_config, src, max_cpu_time, max_memory, test_case_id,
-              spj_version=None, spj_config=None, spj_compile_config=None, spj_src=None, output=False):
+              spj_version=None, spj_config=None, spj_compile_config=None, spj_src=None, output=False, submission_id=None):
         # init
         compile_config = language_config.get("compile")
         run_config = language_config["run"]
-        submission_id = str(uuid.uuid4())
+        submission_uuid = str(uuid.uuid4())
 
         if spj_version:
             self.compile_spj(spj_version=spj_version, src=spj_src,
                              spj_compile_config=spj_compile_config,
                              test_case_id=test_case_id)
 
-        with InitSubmissionEnv(JUDGER_WORKSPACE_BASE, submission_id=str(submission_id)) as submission_dir:
+        with InitSubmissionEnv(JUDGER_WORKSPACE_BASE, submission_id=str(submission_uuid)) as submission_dir:
             if compile_config:
                 src_path = os.path.join(submission_dir, compile_config["src_name"])
 
@@ -85,7 +85,7 @@ class JudgeServer(object):
                                        spj_config=spj_config,
                                        output=output)
             run_result = judge_client.run()
-
+            run_result["submission_id"] = submission_id or submission_uuid
             return run_result
 
     def compile_spj(self, spj_version, src, spj_compile_config, test_case_id):
